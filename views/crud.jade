@@ -1,0 +1,158 @@
+extends layout
+
+block content
+  .row    
+    .col-sm-12.col-lg-4
+        h1 TEST CRUD  
+        div
+         .form-group
+           label(for='name') Name
+           input#id(type='hidden')
+           input#name.form-control(type='text', aria-describedby='nameHelp', placeholder='Enter Name', autocomplete="off")
+           small#nameHelp.form-text.text-muted Enter your full name here
+         button#btnAdd.btn.btn-primary Save        
+         button#btnEdit.btn.btn-warning.d-none Edit
+    .col-sm-12.col-lg-8     
+        P #{sample}
+         table(id='testTable', class='table table-bordered')
+          thead
+            tr
+              th Table Data
+              th 
+          tbody
+            tr
+              td No Data Available
+         
+block javascript
+         script.            
+            function testTable() {
+                    $.getJSON('crud/test', function (data) {
+                        var tblData = "";
+                        $.each(data, function (index, qdt) {
+                            tblData += '<tr>';
+                            tblData += '<td>' + qdt.dt + '</td>';
+                            tblData += '<td><button class="btnDelete btn btn-danger" value="' + qdt.id + '">Delete</button>&nbsp;';
+                            tblData += '<button class="btnSelect btn btn-info" value="' + qdt.id + '">Select</button></td>';
+                            tblData += '</tr>';
+                        });
+                        $('#testTable tbody').html('').append(tblData);
+                        
+                        //DELETE                         
+                        $('.btnDelete').click(function () {
+                            swal({
+                              //title: 'Are you sure want to delete ?',
+                              text: "Are you sure want to delete ?",
+                              type: 'warning',
+                              showCancelButton: true,
+                              confirmButtonColor: '#3085d6',
+                              cancelButtonColor: '#d33',
+                              confirmButtonText: 'Yes',
+                              cancelButtonText: 'No'
+                            }).then((result) => {
+                              if (result.value) {
+                                $.ajax({
+                                    type: 'DELETE',
+                                    url: 'crud/test/' + $(this).val()
+                                }).done(function (response) { 
+                                    clearFields();
+                                    testTable();
+                                    swal('Alert !', 'Successfully Deleted!', 'success');
+                                });
+                                }
+                            });                           
+                        });
+                        
+                        //SELECT
+                        $('.btnSelect').click(function () {                            
+                            $.ajax({
+                                type: 'GET',
+                                dataType: "json",
+                                url: 'crud/test/' + $(this).val()
+                            }).done(function (response) {
+                                $.each(response, function (index, qdt) {
+                                    $('#btnAdd').addClass('d-none');
+                                    $('#btnEdit').removeClass('d-none');
+                                    $('#id').val(qdt.id)
+                                    $('#name').val(qdt.dt);
+                                });
+                            });
+                        });
+                        
+                        
+                        
+                    });
+                }
+
+                function addTest() {                    
+                    var name = $('#name').val();
+                    var postData = {                        
+                        dt: name
+                    }
+                    $.ajax({
+                        type: 'POST',
+                        dataType: "json",
+                        url: 'crud/test',
+                        data:postData                            
+                    }).done(function (response) {                        
+                        clearFields();
+                        testTable();
+                        swal('Alert !', 'Successfully Added!', 'success');
+                    });                    
+                }
+
+                function editTest() {
+                    var id = $('#id').val();
+                    var name = $('#name').val();
+                    var postData = {
+                        id:id,
+                        dt: name
+                    }
+                    $.ajax({
+                        type: 'PUT',
+                        dataType: "json",
+                        url: 'crud/test',
+                        data:postData                            
+                    }).done(function (response) {                        
+                        clearFields();
+                        testTable();
+                        swal('Alert !', 'Successfully Edited!', 'success');
+                    });
+                }
+                
+                function clearFields(){
+                    $('#id').val('');
+                    $('#name').val('');
+                    $('#btnAdd').removeClass('d-none');
+                    $('#btnEdit').addClass('d-none');
+                }
+                
+
+                
+
+                $(document).ready(function () {
+                    testTable();
+                    //alert("Hello CodeProject!");
+                });
+
+                $('#btnAdd').click(function () {
+                    addTest();
+                })
+                
+                $('#btnEdit').click(function () {
+                    editTest();
+                })
+
+
+
+
+
+
+
+
+
+
+
+
+   
+  
+  
